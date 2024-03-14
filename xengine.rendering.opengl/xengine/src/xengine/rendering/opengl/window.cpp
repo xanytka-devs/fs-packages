@@ -172,20 +172,20 @@ namespace XEngine {
     }
 
     void Window::set_param(WindowParam t_param, bool t_val) {
-        set_param(t_param, t_val ? 1.f : 0.f);
+        set_param(t_param, (t_val ? glm::vec2(1.f) : glm::vec2(0.f)));
     }
 
-    void Window::set_param(WindowParam t_param, float t_val1, float t_val2) {
+    void Window::set_param(WindowParam t_param, glm::vec2 t_vec) {
         switch (t_param) {
         case W_VSYNC:
-            m_vsync = t_val1;
+            m_vsync = t_vec.x;
             glfwMakeContextCurrent(m_window);
             if(m_vsync) glfwSwapInterval(1);
             else glfwSwapInterval(0);
             break;
         case W_CURSOR:
-            m_cur_state = CursorState(t_val1);
-            switch ((int)t_val1) {
+            m_cur_state = CursorState(t_vec.x);
+            switch ((int)t_vec.x) {
             case C_NONE:
                 glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 break;
@@ -201,13 +201,13 @@ namespace XEngine {
             }
             break;
         case W_OPACITY:
-            glfwSetWindowOpacity(m_window, t_val1);
+            glfwSetWindowOpacity(m_window, t_vec.x);
             break;
         case W_POS:
-            glfwSetWindowPos(m_window, (int)t_val1, (int)t_val2);
+            glfwSetWindowPos(m_window, (int)t_vec.x, (int)t_vec.y);
             break;
         case W_SIZE:
-            glfwSetWindowSize(m_window, (int)t_val1, (int)t_val2);
+            glfwSetWindowSize(m_window, (int)t_vec.x, (int)t_vec.y);
             break;
         default:
             break;
