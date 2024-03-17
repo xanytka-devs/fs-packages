@@ -1,0 +1,14 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+xengine.audio/includes/miniaudio/* linguist-vendored
+xengine.rendering.opengl/glad/* linguist-vendored
+xengine.rendering.vulkan/lib/* linguist-vendored
+xengine.rendering.vulkan/include/dxc/* linguist-vendored
+xengine.rendering.vulkan/include/glslang/* linguist-vendored
+xengine.rendering.vulkan/include/shaderc/* linguist-vendored
+xengine.rendering.vulkan/include/spirv_cross/* linguist-vendored
+xengine.rendering.vulkan/include/spirv-headers/* linguist-vendored
+xengine.rendering.vulkan/include/spirv-tools/* linguist-vendored
+xengine.rendering.vulkan/include/vk_video/* linguist-vendored
+xengine.rendering.vulkan/include/vulkan/* linguist-vendored
