@@ -28,14 +28,14 @@ namespace XEngine {
     }
 
     void Window::framebuffer_callback(GLFWwindow* t_window, int t_width, int t_height) {
-        //Window processes.
+        //Update variables.
         width = t_width;
         height = t_height;
         glViewport(0, 0, width, height);
+        //Update app.
         App::instance()->update_app = false;
         App::instance()->update_loop_call();
         App::instance()->update();
-        r_call(width, height);
     }
 
     bool Window::initialize() {
@@ -61,7 +61,7 @@ namespace XEngine {
     }
 
     void Window::pull_events() {
-        //Window processes.
+        //Pull events.
         glfwSwapBuffers(m_window);
         glfwPollEvents();
     }

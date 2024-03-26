@@ -23,12 +23,13 @@ namespace XEngine {
 		//Generate RBO.
 		glGenRenderbuffers(1, &m_rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(t_scale.x),
-			static_cast<GLsizei>(t_scale.y));
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
+			static_cast<GLsizei>(t_scale.x), static_cast<GLsizei>(t_scale.y));
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+			GL_RENDERBUFFER, m_rbo);
 		//Check status.
 		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			LOG_WARN("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+			LOG_WARN("Framebuffer is not complete!");
 		//Unbind framebuffer.
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -74,20 +75,20 @@ namespace XEngine {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 	}
 
-	void FrameBuffer::enable() {
+	void FrameBuffer::begin() {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	void FrameBuffer::disable() {
+	void FrameBuffer::end() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 	}
 
 	void FrameBuffer::remove() const {
-		glDeleteFramebuffers(1, &m_fbo);
-		glDeleteTextures(1, &m_texture_color_buffer);
-		glDeleteRenderbuffers(1, &m_rbo);
+		//glDeleteFramebuffers(1, &m_fbo);
+		//glDeleteTextures(1, &m_texture_color_buffer);
+		//glDeleteRenderbuffers(1, &m_rbo);
 	}
 
 	void FrameBuffer::draw_to(unsigned int t_object) {
