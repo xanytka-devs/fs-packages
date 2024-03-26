@@ -61,7 +61,7 @@ namespace XEngine {
         glm::vec4 color = Renderer::get_clear_color();
     }
 
-    void Window::ui_initialize() {
+    void Window::gui_initialize() {
         //Initialize ImGui.
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -76,7 +76,7 @@ namespace XEngine {
         //LOG_INFO("ImGui initialized.");
     }
 
-    void Window::ui_update() {
+    void Window::gui_update() {
         if (!ui_initialized) return;
         //Update ImGui.
         //ImGui_ImplVulkan_NewFrame();
@@ -84,7 +84,7 @@ namespace XEngine {
         ImGui::NewFrame();
     }
 
-    void Window::ui_draw() {
+    void Window::gui_draw() {
         if (!ui_initialized) return;
         //Draw ImGui.
         ImGui::Render();
@@ -197,7 +197,7 @@ namespace XEngine {
         glfwSetWindowShouldClose(m_window, true);
     }
 
-    void Window::ui_shutdown() {
+    void Window::gui_shutdown() {
         if (!ui_initialized) return;
         //Shutdown ImGui.
         //ImGui_ImplVulkan_Shutdown();

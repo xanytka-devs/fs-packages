@@ -12,3 +12,6 @@ xengine.rendering.vulkan/include/spirv-headers/* linguist-vendored
 xengine.rendering.vulkan/include/spirv-tools/* linguist-vendored
 xengine.rendering.vulkan/include/vk_video/* linguist-vendored
 xengine.rendering.vulkan/include/vulkan/* linguist-vendored
+
+*.c linguist-language=C++
+*.h linguist-language=C++

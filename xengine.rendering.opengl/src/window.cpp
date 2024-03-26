@@ -29,19 +29,19 @@ namespace XEngine {
 
     void Window::framebuffer_callback(GLFWwindow* t_window, int t_width, int t_height) {
         //Window processes.
-        glViewport(0, 0, t_width, t_height);
-    }
-
-    void Window::size_callback(GLFWwindow* t_window, int t_width, int t_height) {
-        //Update window params.
         width = t_width;
         height = t_height;
+        glViewport(0, 0, width, height);
+        App::instance()->update_app = false;
+        App::instance()->update_loop_call();
+        App::instance()->update();
+        r_call(width, height);
     }
 
     bool Window::initialize() {
         //Create window.
         m_window = glfwCreateWindow(width, height, m_title.c_str(), NULL, NULL);
-        if (!m_window) { return false; }
+        if(!m_window) { return false; }
         //Set context.
         glfwMakeContextCurrent(m_window);
         if(m_vsync) glfwSwapInterval(1);
@@ -53,9 +53,6 @@ namespace XEngine {
     }
 
     void Window::update() {
-        //Window processes.
-        glfwSwapBuffers(m_window);
-        glfwPollEvents();
         //Set clear color.
         glm::vec4 color = Renderer::get_clear_color();
         glClearColor(color.x, color.y, color.z, color.w);
@@ -63,7 +60,14 @@ namespace XEngine {
         glGetError();
     }
 
-    void Window::ui_initialize() {
+    void Window::pull_events() {
+        //Window processes.
+        glfwSwapBuffers(m_window);
+        glfwPollEvents();
+    }
+
+    void Window::gui_initialize() {
+#ifdef XENGINE_GUI
         //Initialize ImGui.
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -76,17 +80,40 @@ namespace XEngine {
         ImGui_ImplOpenGL3_Init("#version 330 core");
         ui_initialized = true;
         LOG_INFO("ImGui initialized.");
+#endif // XENGINE_GUI
     }
 
-    void Window::ui_update() {
+#ifdef XENGINE_GUI
+    static void build_fonts(float font_size, const char* font_dir) {
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF(font_dir, font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        io.Fonts->Build();
+    }
+#endif // XENGINE_GUI
+
+    void Window::gui_update() {
+#ifdef XENGINE_GUI
         if(!ui_initialized) return;
+        //Update font data.
+        if(ui_need_to_reload) {
+            //Update properties.
+            ui_need_to_reload = false;
+            ImGuiIO& io = ImGui::GetIO();
+            io.Fonts->Clear();
+            build_fonts(ui_font_size, ui_font_dir);
+            //Reconstruct device.
+            ImGui_ImplOpenGL3_DestroyDeviceObjects();
+            ImGui_ImplOpenGL3_CreateDeviceObjects();
+        }
         //Update ImGui.
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+#endif // XENGINE_GUI
     }
 
-    void Window::ui_draw() {
+    void Window::gui_draw() {
+#ifdef XENGINE_GUI
         if(!ui_initialized) return;
         //Draw ImGui.
         ImGui::Render();
@@ -97,20 +124,33 @@ namespace XEngine {
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
+#endif // XENGINE_GUI
+    }
+
+    void Window::gui_shutdown() {
+#ifdef XENGINE_GUI
+        if(!ui_initialized) return;
+        //Shutdown ImGui.
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+#endif // XENGINE_GUI
     }
 
     void Window::set_init_params() {
         //Set viewport.
         glViewport(0, 0, width, height);
         glfwSetFramebufferSizeCallback(m_window, framebuffer_callback);
-        glfwSetWindowSizeCallback(m_window, size_callback);
         //Callbacks for input.
         glfwSetKeyCallback(m_window, Keyboard::key_callback);
         glfwSetCursorPosCallback(m_window, Mouse::cursor_callback);
         glfwSetMouseButtonCallback(m_window, Mouse::button_callback);
         glfwSetScrollCallback(m_window, Mouse::scroll_callback);
-        //Enable depth test.
+        //Enable functions.
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     int Window::get_param_i(WindowParam t_param) const {
@@ -199,14 +239,6 @@ namespace XEngine {
     void Window::close() {
         //Close window.
         glfwSetWindowShouldClose(m_window, true);
-    }
-
-    void Window::ui_shutdown() {
-        if(!ui_initialized) return;
-        //Shutdown ImGui.
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
     }
 
     bool Window::closing() {

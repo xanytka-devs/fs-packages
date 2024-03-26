@@ -1,5 +1,5 @@
 #include "../packages/xengine.io/includes/os.hpp"
-
+#ifdef XENGINE_IO
 #include <wtypes.h>
 
 namespace XEngine {
@@ -56,3 +56,4 @@ namespace XEngine {
     }
 
 }
+#endif // XENGINE_IO

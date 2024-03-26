@@ -6,16 +6,29 @@
 namespace XEngine {
 	class AudioManager {
 	public:
+		/// <summary>
+		/// Initializes MiniAudio.
+		/// </summary>
 		static void initialize();
+		/// <summary>
+		/// Logs host device information.
+		/// </summary>
 		static void print_host_info();
+		/// <summary>
+		/// Is audio manager initialized.
+		/// </summary>
+		/// <returns>State.</returns>
 		static bool is_active();
+		/// <summary>
+		/// Shutdown AudioManager (cleanup).
+		/// </summary>
 		static void remove();
 	private:
 		static bool m_is_active;
 	};
 
 	struct AudioLayer {
-		std::string name;
+		const char* name = "new_audio_layer";
 		float volume = 100.f;
 		float pitch = 1.f;
 	};
@@ -23,17 +36,43 @@ namespace XEngine {
 	static const AudioLayer master_layer{"master"};
 	class Audio {
 	public:
-		Audio(std::string t_source, bool t_loop = false, const AudioLayer t_layer = master_layer, bool t_play_on_awake = false);
+		Audio() : m_loop(false), m_source("") { }
+		Audio(const char* t_source, bool t_loop = false, const AudioLayer t_layer = master_layer, bool t_play_on_awake = false);
+		/// <summary>
+		/// Is audio source currently playing.
+		/// </summary>
+		/// <returns>State.</returns>
 		bool is_playing() const;
 
+		/// <summary>
+		/// Play audio source.
+		/// </summary>
 		void play();
+		/// <summary>
+		/// Stops audio source.
+		/// </summary>
 		void stop();
-		std::string get_source() { return m_source; }
-		int get_length();
-		void set_source(std::string t_source);
+		/// <summary>
+		/// Remove audio (cleanup).
+		/// </summary>
 		void remove();
+		/// <summary>
+		/// Get audio file source.
+		/// </summary>
+		/// <returns>Audio file path.</returns>
+		const char* get_source() { return m_source; }
+		/// <summary>
+		/// Get length of audio file.
+		/// </summary>
+		/// <returns>Length of audio file.</returns>
+		int get_length();
+		/// <summary>
+		/// Set current source.
+		/// </summary>
+		/// <param name="t_source">New audio file path.</param>
+		void set_source(const char* t_source);
 	private:
-		std::string m_source;
+		const char* m_source;
 		AudioLayer m_layer;
 		bool m_loop;
 	};

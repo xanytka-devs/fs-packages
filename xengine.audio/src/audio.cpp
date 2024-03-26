@@ -18,9 +18,12 @@ namespace XEngine {
     ma_device device;
     bool AudioManager::m_is_active = false;
 
-    /// <summary>
-    /// Logs host device information.
-    /// </summary>
+    void AudioManager::initialize() {
+        //Initialize library and report version.
+        m_is_active = true;
+        LOG_INFO("MiniAudio initialized.");
+    }
+
     void AudioManager::print_host_info() {
         //deviceConfig = ma_device_config_init(ma_device_type_playback);
         ////Input debug info.
@@ -34,26 +37,12 @@ namespace XEngine {
         //printf("        Format: %g s\n", deviceConfig.playback.format);
     }
 
-    /// <summary>
-    /// Initializes MiniAudio.
-    /// </summary>
-    void AudioManager::initialize() {
-        //Initialize library and report version.
-        LOG_INFO("MiniAudio initialized.");
-    }
-
-    /// <summary>
-    /// Is audio manager initialized.
-    /// </summary>
-    /// <returns>State.</returns>
     bool AudioManager::is_active() {
         return m_is_active;
     }
 
-    /// <summary>
-    /// Shutdown AudioManager (cleanup).
-    /// </summary>
     void AudioManager::remove() {
+        m_is_active = false;
         LOG_INFO("Shutting down MiniAudio.");
     }
 
@@ -65,15 +54,11 @@ namespace XEngine {
     }
 
 
-    Audio::Audio(std::string t_source, bool t_loop, const AudioLayer t_layer, bool t_play_on_awake)
+    Audio::Audio(const char* t_source, bool t_loop, const AudioLayer t_layer, bool t_play_on_awake)
         : m_source(t_source), m_loop(t_loop), m_layer(t_layer) {
         if(t_play_on_awake) play();
     }
 
-    /// <summary>
-    /// Is audio source currently playing.
-    /// </summary>
-    /// <returns>State.</returns>
     bool Audio::is_playing() const {
         return ma_device_get_state(&device) != ma_device_state_stopped 
            && ma_device_get_state(&device) != ma_device_state_uninitialized;
@@ -85,12 +70,10 @@ namespace XEngine {
         return static_cast<int>(length);
     }
 
-    /// <summary>
-    /// Play audio source.
-    /// </summary>
     void Audio::play() {
+        if(!AudioManager::is_active()) return;
         if(is_playing()) stop();
-        result = ma_decoder_init_file(m_source.c_str(), NULL, &decoder);
+        result = ma_decoder_init_file(m_source, NULL, &decoder);
         if (result != MA_SUCCESS) {
             LOG_ERRR("Couldn't initialize decoder.");
             return;
@@ -116,9 +99,6 @@ namespace XEngine {
         }
     }
 
-    /// <summary>
-    /// Stops audio source.
-    /// </summary>
     void Audio::stop() {
         if(ma_device_get_state(&device) != ma_device_state_started) return;
         if(ma_device_stop(&device) != MA_SUCCESS) {
@@ -129,15 +109,12 @@ namespace XEngine {
         ma_decoder_uninit(&decoder);
     }
 
-    /// <summary>
-    /// Remove audio (cleanup).
-    /// </summary>
     void Audio::remove() {
         ma_device_uninit(&device);
         ma_decoder_uninit(&decoder);
     }
 
-    void Audio::set_source(std::string t_source) {
+    void Audio::set_source(const char* t_source) {
         stop();
         m_source = t_source;
     }

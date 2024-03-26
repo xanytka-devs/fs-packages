@@ -9,8 +9,8 @@ namespace XEngine {
 
     Shader::Shader() { id = -1; }
 
-    Shader::Shader(const char* t_vert_shader_path, const char* t_frag_shader_path) {
-        generate(t_vert_shader_path, t_frag_shader_path);
+    Shader::Shader(const char* t_vert_shader_path, const char* t_frag_shader_path, bool t_load) : id(-1) {
+        if(t_load) generate(t_vert_shader_path, t_frag_shader_path);
     }
 
     void Shader::generate(const char* t_vertShaderPath, const char* t_frag_shader_path) {
@@ -37,6 +37,10 @@ namespace XEngine {
 
     void Shader::enable() {
         glUseProgram(id);
+    }
+
+    void Shader::disable() {
+        glUseProgram(0);
     }
 
     void Shader::remove() {
@@ -80,6 +84,14 @@ namespace XEngine {
 
     void Shader::set_float(std::string t_name, float t_val) {
         glUniform1f(glGetUniformLocation(id, t_name.c_str()), t_val);
+    }
+
+    void Shader::set_2_floats(std::string t_name, float t_val1, float t_val2) {
+        glUniform2f(glGetUniformLocation(id, t_name.c_str()), t_val1, t_val2);
+    }
+
+    void Shader::set_2_floats(std::string t_name, glm::vec2 t_vec) {
+        glUniform2f(glGetUniformLocation(id, t_name.c_str()), t_vec.x, t_vec.y);
     }
 
     void Shader::set_3_floats(std::string t_name, float t_val1, float t_val2, float t_val3) {
