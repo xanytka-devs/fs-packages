@@ -53,11 +53,13 @@ namespace XEngine {
     }
 
     void Window::update() {
+        glDisable(GL_ALPHA_TEST);
         //Set clear color.
         glm::vec4 color = Renderer::get_clear_color();
         glClearColor(color.x, color.y, color.z, color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glGetError();
+        glEnable(GL_ALPHA_TEST);
     }
 
     void Window::pull_events() {

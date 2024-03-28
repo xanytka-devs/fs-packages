@@ -3,7 +3,7 @@
 
 #ifdef OPENGL_RENDERING
 
-#include <xengine/ui/text.hpp>
+#include <../packages/xengine.ui/include/text.hpp>
 #include "../include/common.hpp"
 #include "xengine/enviroment.hpp"
 #include <ft2build.h>

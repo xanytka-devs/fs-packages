@@ -2,10 +2,10 @@
 #include <vector>
 #include <thread>
 #define MINIAUDIO_IMPLEMENTATION
-#include "../packages/xengine.audio/includes/miniaudio/miniaudio.h"
+#include "../include/miniaudio/miniaudio.h"
 
 #include "xengine/log.hpp"
-#include "../packages/xengine.audio/includes/audio.hpp"
+#include "../include/audio.hpp"
 
 namespace XEngine {
 

@@ -1,0 +1,10 @@
+{
+	"engine_version": "0.1",
+	"package_info": {
+		"id": 5,
+		"name": "xengine.physics",
+		"version": "0.1",
+		"category": "other",
+		"language": "cpp"
+	}
+}

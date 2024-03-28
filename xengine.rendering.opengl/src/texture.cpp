@@ -21,8 +21,8 @@ namespace XEngine {
 		int width, height, channels;
 		std::string full_path = path + "/" + file;
 		stbi_set_flip_vertically_on_load(t_flip);
-		unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &channels, 3);
-		if (!data) LOG_ERRR("stbi (Texture::load()): '" + full_path + "' not loaded.");
+		unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &channels, 4);
+		if(!data) LOG_ERRR("stbi (Texture::load()): Couldn't load '" + full_path + "'.");
 		//Set texture mode.
 		GLenum color_m = GL_RGB;
 		GLenum color_m_sup = GL_RGB;
@@ -33,7 +33,7 @@ namespace XEngine {
 			break;
 		case 4:
 			color_m = GL_RGBA;
-			color_m_sup = GL_RGB;
+			color_m_sup = GL_RGBA;
 			break;
 		}
 		//Generate mipmaps.
