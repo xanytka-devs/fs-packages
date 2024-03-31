@@ -85,13 +85,13 @@ namespace XEngine {
 		t_shader.set_4_floats("material.specular", specular.r, specular.g, specular.b, specular.a);
 		t_shader.set_4_floats("material.emission", emission.r, emission.g, emission.b, emission.a);
 		t_shader.set_int("no_textures", 1);
-		if (!m_no_textures) {
+		if(!m_no_textures) {
 			t_shader.set_int("no_textures", 0);
 			//Load textures.
 			unsigned int diffuse_idx = 0;
 			unsigned int specular_idx = 0;
 			unsigned int emission_idx = 0;
-			for (unsigned int i = 0; i < textures.size(); i++) {
+			for(unsigned int i = 0; i < textures.size(); i++) {
 				//Activate texture.
 				glActiveTexture(GL_TEXTURE0 + i);
 				//Retrieve texture info.

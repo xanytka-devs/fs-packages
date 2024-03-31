@@ -99,6 +99,9 @@ namespace XEngine {
 			return true;
 		}
 
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+
 		/// <summary>
 		/// Checks if collider partialy contains region.
 		/// </summary>
@@ -128,8 +131,8 @@ namespace XEngine {
 				float dist_sqrd = 0.0f;
 				for(int i = 0; i < 3; i++) {
 					//Determine closest side.
-					float closestPt = std::max(t_collider.bb_min[i],
-						std::min(sp_center[i], t_collider.bb_max[i]));
+					float closestPt = max(t_collider.bb_min[i],
+						min(sp_center[i], t_collider.bb_max[i]));
 					//Add distance.
 					dist_sqrd += (closestPt - sp_center[i]) * (closestPt - sp_center[i]);
 				}

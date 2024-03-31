@@ -7,6 +7,7 @@
 
 #include "../include/common.hpp"
 #include "xengine/rendering/texture.hpp"
+#include <xengine/utils.hpp>
 
 namespace XEngine {
 
@@ -19,10 +20,15 @@ namespace XEngine {
 	void Texture::load(bool t_flip) {
 		//Load texture.
 		int width, height, channels;
-		std::string full_path = path + "/" + file;
+		char full_path[100];
+
+		strcpy_s(full_path, path);
+		if(!ends_with(path, "\\"))
+		strcat_s(full_path, "\\");
+		strcat_s(full_path, file);
 		stbi_set_flip_vertically_on_load(t_flip);
-		unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &channels, 4);
-		if(!data) LOG_ERRR("stbi (Texture::load()): Couldn't load '" + full_path + "'.");
+		unsigned char* data = stbi_load(full_path, &width, &height, &channels, 4);
+		if(!data) LOG_ERRR("stbi (Texture::load()): Couldn't load '", full_path, "'.");
 		//Set texture mode.
 		GLenum color_m = GL_RGB;
 		GLenum color_m_sup = GL_RGB;
@@ -56,7 +62,7 @@ namespace XEngine {
 		glBindTexture(GL_TEXTURE_2D, id);
 	}
 
-	void Texture::remove() {
+	void Texture::remove() const {
 		glDeleteTextures(1, &id);
 	}
 

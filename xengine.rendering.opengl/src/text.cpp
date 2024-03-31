@@ -27,14 +27,14 @@ namespace XEngine {
 	bool Text::load_font(std::string path, int t_height) {
 		if(!initialized) return false;
 		if(!std::filesystem::exists(path)) {
-			LOG_ERRR("Font file \"" + path + "\" doesn't exist.");
+			LOG_ERRR("Font file \"", path.c_str(), "\" doesn't exist.");
 			return false;
 		}
 		//Assign variables and load font.
 		m_height = t_height;
 		FT_Face font;
 		if(FT_New_Face(ft, path.c_str(), 0, &font)) {
-			LOG_ERRR("Couldn't load font file \"" + path + "\".");
+			LOG_ERRR("Couldn't load font file \"", path.c_str(), "\".");
 			return false;
 		}
 		//Set height and dynamic width.
@@ -46,7 +46,7 @@ namespace XEngine {
 		for(unsigned char c = 0; c < 128; c++) {
 			//Load glyph.
 			if(FT_Load_Char(font, c, FT_LOAD_RENDER)) {
-				LOG_ERRR("Couldn't load glyph #" + std::to_string(c) + ".");
+				LOG_ERRR("Couldn't load glyph #", (const char*)c, ".");
 				continue;
 			}
 			//Generate texture.

@@ -42,7 +42,7 @@ namespace XEngine {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
                     0, color_mode, w, h, 0, color_mode, GL_UNSIGNED_BYTE, data);
             else
-                LOG_ERRR("Failed to load texture at \"" + std::string(m_faces[i]) + "\".");
+                LOG_ERRR("Failed to load texture at \"", (const char*)m_faces[i], "\".");
             //Free data.
             stbi_image_free(data);
         }
@@ -55,7 +55,7 @@ namespace XEngine {
     }
 
     void Cubemap::load(const char* t_cb_file_path) {
-        std::vector<std::string> files = Utils::split_str(&Utils::read_from_file(t_cb_file_path), '\n');
+        std::vector<std::string> files = split_str(&read_from_file(t_cb_file_path), '\n');
         if(files.size() != 7) return;
         //Readress function.
         load_m(files[0].c_str(), files[1].c_str(), files[2].c_str(),

@@ -52,7 +52,7 @@ namespace XEngine {
         char infoLog[512];
         //Create shader and read file.
         GLuint output = glCreateShader(t_type);
-        std::string shaderSrc = Utils::read_from_file(t_path);
+        std::string shaderSrc = read_from_file(t_path);
         const GLchar* shaderGL = shaderSrc.c_str();
         //Compile.
         glShaderSource(output, 1, &shaderGL, NULL);

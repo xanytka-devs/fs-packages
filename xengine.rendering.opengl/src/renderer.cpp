@@ -25,11 +25,13 @@ namespace XEngine {
 	}
 
 	bool Renderer::initialize_libs(GLFWwindow* t_window) {
+		nvtx3::mark("opengl_initialize");
 		//Load GLAD.
 		return gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	}
 
 	void Renderer::terminate() {
+		nvtx3::mark("opengl_terminate");
 		//Terminate GLFW.
 		glfwTerminate();
 	}
@@ -50,22 +52,22 @@ namespace XEngine {
 	}
 
 	void Renderer::print_host_info() {
-		printf("Rendering | OpenGL (GLAD & GLFW)\n");
-		printf(("	Vendor: " + get_vendor() + "\n").c_str());
-		printf(("	Renderer: " + get_renderer() + "\n").c_str());
-		printf(("	Version: " + get_version() + "\n").c_str());
+		LOG("Rendering | OpenGL (GLAD & GLFW)");
+		LOG("	Vendor: ", get_vendor());
+		LOG("	Renderer: ", get_renderer());
+		LOG("	Version: ", get_version());
 	}
 
-	std::string Renderer::get_vendor() {
-		return std::string(reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+	const char* Renderer::get_vendor() {
+		return reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	}
 
-	std::string Renderer::get_renderer() {
-		return std::string(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+	const char* Renderer::get_renderer() {
+		return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 	}
 
-	std::string Renderer::get_version() {
-		return std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+	const char* Renderer::get_version() {
+		return reinterpret_cast<const char*>(glGetString(GL_VERSION));
 	}
 }
 #endif // OPENGL_RENDERING

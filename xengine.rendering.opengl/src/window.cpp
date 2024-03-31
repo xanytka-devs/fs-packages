@@ -48,18 +48,16 @@ namespace XEngine {
         else glfwSwapInterval(0);
         glfwInitHint(GLFW_JOYSTICK_HAT_BUTTONS, GLFW_TRUE);
         glfwInitHint(GLFW_RESIZABLE, GLFW_TRUE);
-        LOG_INFO("Window '" + m_title + "' initialized.");
+        LOG_INFO("Window '", m_title.c_str(), "' initialized.");
         return true;
     }
 
     void Window::update() {
-        glDisable(GL_ALPHA_TEST);
         //Set clear color.
         glm::vec4 color = Renderer::get_clear_color();
         glClearColor(color.x, color.y, color.z, color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glGetError();
-        glEnable(GL_ALPHA_TEST);
     }
 
     void Window::pull_events() {
@@ -86,9 +84,11 @@ namespace XEngine {
     }
 
 #ifdef XENGINE_GUI
-    static void build_fonts(float font_size, const char* font_dir) {
+    static void build_fonts(std::vector<GuiFont>* fonts) {
         ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF(font_dir, font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        for(size_t i = 0; i < (*fonts).size(); i++)
+            fonts->at(i).font = io.Fonts->AddFontFromFileTTF(fonts->at(i).path,
+                fonts->at(i).size, NULL, io.Fonts->GetGlyphRangesCyrillic());
         io.Fonts->Build();
     }
 #endif // XENGINE_GUI
@@ -100,9 +100,8 @@ namespace XEngine {
         if(ui_need_to_reload) {
             //Update properties.
             ui_need_to_reload = false;
-            ImGuiIO& io = ImGui::GetIO();
-            io.Fonts->Clear();
-            build_fonts(ui_font_size, ui_font_dir);
+            ImGui::GetIO().Fonts->Clear();
+            build_fonts(&ui_fonts);
             //Reconstruct device.
             ImGui_ImplOpenGL3_DestroyDeviceObjects();
             ImGui_ImplOpenGL3_CreateDeviceObjects();
@@ -121,10 +120,9 @@ namespace XEngine {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         if(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
+            glfwMakeContextCurrent(m_window);
         }
 #endif // XENGINE_GUI
     }
@@ -151,6 +149,9 @@ namespace XEngine {
         //Enable functions.
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
+        //glEnable(GL_CULL_FACE);
+        //glCullFace(GL_BACK);
+        //glFrontFace(GL_CCW);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
