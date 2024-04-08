@@ -1,0 +1,10 @@
+{
+	"engine_version": "0.1",
+	"package_info": {
+		"id": 4,
+		"name": "fs.rendering.vulkan",
+		"version": "0.1",
+		"category": "rendering",
+		"language": "cpp"
+	}
+}

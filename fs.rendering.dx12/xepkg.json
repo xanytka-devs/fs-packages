@@ -1,0 +1,10 @@
+{
+	"engine_version": "0.1",
+	"package_info": {
+		"id": 7,
+		"name": "fs.rendering.dx12",
+		"version": "0.1",
+		"category": "rendering",
+		"language": "cpp"
+	}
+}

@@ -1,0 +1,10 @@
+{
+	"engine_version": "0.1",
+	"package_info": {
+		"id": 2,
+		"name": "fs.audio",
+		"version": "0.1",
+		"category": "audio",
+		"language": "cpp"
+	}
+}

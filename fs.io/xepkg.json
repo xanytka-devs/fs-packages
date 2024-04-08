@@ -1,0 +1,10 @@
+{
+	"engine_version": "0.1",
+	"package_info": {
+		"id": 3,
+		"name": "fs.io",
+		"version": "0.1",
+		"category": "io",
+		"language": "cpp"
+	}
+}
