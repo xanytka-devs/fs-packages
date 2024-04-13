@@ -13,20 +13,19 @@ namespace firesteel {
 		glGenFramebuffers(1, &m_fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 		//Generate color buffer.
-		glGenTextures(1, &m_texture_color_buffer);
-		glBindTexture(GL_TEXTURE_2D, m_texture_color_buffer);
+		glGenTextures(1, &m_texture);
+		glBindTexture(GL_TEXTURE_2D, m_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(t_scale.x), static_cast<GLsizei>(t_scale.y),
 			0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture_color_buffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
 		//Generate RBO.
 		glGenRenderbuffers(1, &m_rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
 			static_cast<GLsizei>(t_scale.x), static_cast<GLsizei>(t_scale.y));
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-			GL_RENDERBUFFER, m_rbo);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 		//Check status.
 		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			LOG_WARN("Framebuffer is not complete!");
@@ -62,12 +61,12 @@ namespace firesteel {
 
 	void FrameBuffer::scale(glm::vec2 t_scale) {
 		//Resize FBO.
-		glBindTexture(GL_TEXTURE_2D, m_fbo);
+		glBindTexture(GL_TEXTURE_2D, m_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(t_scale.x), static_cast<GLsizei>(t_scale.y),
 			0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_fbo, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
 		//Resize RBO.
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
@@ -77,30 +76,30 @@ namespace firesteel {
 
 	void FrameBuffer::begin() {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-		glEnable(GL_DEPTH_TEST);
 	}
 
 	void FrameBuffer::end() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
 	}
 
 	void FrameBuffer::remove() const {
-		//glDeleteFramebuffers(1, &m_fbo);
-		//glDeleteTextures(1, &m_texture_color_buffer);
-		//glDeleteRenderbuffers(1, &m_rbo);
+		glDeleteFramebuffers(1, &m_fbo);
+		glDeleteTextures(1, &m_texture);
+		glDeleteRenderbuffers(1, &m_rbo);
 	}
 
 	void FrameBuffer::draw_to(unsigned int t_object) {
 		glBindVertexArray(t_object);
-		glBindTexture(GL_TEXTURE_2D, m_texture_color_buffer);
+		glBindTexture(GL_TEXTURE_2D, m_texture);
 	}
 
 	void FrameBuffer::draw(Shader t_screen_shader) {
+		glDisable(GL_DEPTH_TEST);
 		t_screen_shader.enable();
 		glBindVertexArray(m_vao);
-		glBindTexture(GL_TEXTURE_2D, m_texture_color_buffer);
+		glBindTexture(GL_TEXTURE_2D, m_texture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glEnable(GL_DEPTH_TEST);
 	}
 
 }

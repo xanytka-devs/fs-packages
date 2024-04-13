@@ -18,6 +18,8 @@ namespace firesteel {
     unsigned int Window::width = 800;
     unsigned int Window::height = 600;
     bool ui_initialized = false;
+    void (*drop_callback)(int count, const char** paths);
+    void (*resize_callback)(int t_width, int t_height);
 
     Window::Window() : m_title("Hello firesteel!"), m_window(nullptr) {}
     Window::Window(unsigned int t_width, unsigned int t_height, const char* t_title)
@@ -34,6 +36,7 @@ namespace firesteel {
         width = t_width;
         height = t_height;
         glViewport(0, 0, width, height);
+        if(drop_callback != nullptr) (*resize_callback)(width, height);
         //Update app.
         App::instance()->update_app = false;
         App::instance()->update_loop_call();
@@ -50,17 +53,8 @@ namespace firesteel {
         else glfwSwapInterval(0);
         glfwInitHint(GLFW_JOYSTICK_HAT_BUTTONS, GLFW_TRUE);
         glfwInitHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
         LOG_INFO("Window '", m_title.c_str(), "' initialized.");
         return true;
-    }
-
-    void Window::update() {
-        //Set clear color.
-        glm::vec4 color = Renderer::get_clear_color();
-        glClearColor(color.x, color.y, color.z, color.w);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glGetError();
     }
 
     void Window::pull_events() {
@@ -253,8 +247,6 @@ namespace firesteel {
         set_param(t_param, t_val.c_str());
     }
 
-    void (*drop_callback)(int count, const char** paths);
-
     void Window::m_drop_callback(GLFWwindow* t_window, int t_count, const char** t_paths) {
         if(drop_callback != nullptr) (*drop_callback)(t_count, t_paths);
     }
@@ -263,9 +255,21 @@ namespace firesteel {
         drop_callback = t_drop_callback;
     }
 
+    void Window::set_resize_callback(void (*t_resize_callback)(int t_width, int t_height)) {
+        resize_callback = t_resize_callback;
+    }
+
     void Window::close() {
         //Close window.
         glfwSetWindowShouldClose(m_window, true);
+    }
+
+    void Window::clear() {
+        //Set clear color.
+        glm::vec4 color = Renderer::get_clear_color();
+        glClearColor(color.x, color.y, color.z, color.w);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glGetError();
     }
 
     bool Window::closing() {
