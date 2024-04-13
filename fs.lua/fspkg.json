@@ -1,0 +1,10 @@
+{
+	"engine_version": "0.1",
+	"package_info": {
+		"id": 7,
+		"name": "fs.lua",
+		"version": "0.1",
+		"category": "language",
+		"language": "cpp"
+	}
+}

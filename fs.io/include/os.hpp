@@ -32,6 +32,7 @@ namespace firesteel {
 			WS_NO_RESIZE = 0x3
 		};
 		static void set_window_style(WindowStyle t_style);
+		static void open_url(const char* t_url);
 	};
 }
 

@@ -1,5 +1,6 @@
 #include "../include/os.hpp"
 #include <wtypes.h>
+#include <shellapi.h>
 #include <filesystem>
 
 namespace firesteel {
@@ -47,6 +48,10 @@ namespace firesteel {
             break;
         }
         SetWindowLong(window_handle, GWL_STYLE, style);
+    }
+
+    void OS::open_url(const char* t_url) {
+        ShellExecute(0, 0, t_url, 0, 0, SW_SHOW);
     }
 
 }
