@@ -13,6 +13,8 @@ namespace firesteel {
 		glGenFramebuffers(1, &m_fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 		//Generate color buffer.
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1, &m_texture);
 		glBindTexture(GL_TEXTURE_2D, m_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(t_scale.x), static_cast<GLsizei>(t_scale.y),
@@ -72,6 +74,10 @@ namespace firesteel {
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
 			static_cast<GLsizei>(t_scale.x), static_cast<GLsizei>(t_scale.y));
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+		//Unbind framebuffer.
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 	void FrameBuffer::begin() {

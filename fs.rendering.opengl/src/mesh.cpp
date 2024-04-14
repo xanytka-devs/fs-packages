@@ -37,6 +37,46 @@ namespace firesteel {
 		return output;
 	}
 
+	static void average_vectors(glm::vec3& t_base, glm::vec3 t_addition, unsigned char t_existing) {
+		if (!t_existing) t_base = t_addition;
+		else {
+			float f = 1 / ((float)t_existing + 1);
+
+			t_base *= (float)(t_existing)*f;
+
+			t_base += t_addition * f;
+		}
+	}
+
+	void Vertex::calc_tan_vectors(std::vector<Vertex>& t_list, std::vector<unsigned int>& t_indices) {
+		unsigned char* counts = (unsigned char*)malloc(t_list.size() * sizeof(unsigned char));
+		for(unsigned int i = 0, len = t_list.size(); i < len; i++) counts[i] = 0;
+		//Iterate through indices and calculate vectors for each face.
+		for (unsigned int i = 0, len = t_indices.size(); i < len; i += 3) {
+			//3 vertices corresponding to the face
+			Vertex v1 = t_list[t_indices[i + 0]];
+			Vertex v2 = t_list[t_indices[i + 1]];
+			Vertex v3 = t_list[t_indices[i + 2]];
+			//Calculate edges.
+			glm::vec3 edge1 = v2.pos - v1.pos;
+			glm::vec3 edge2 = v3.pos - v1.pos;
+			//Calculate dUVs.
+			glm::vec2 deltaUV1 = v2.uv - v1.uv;
+			glm::vec2 deltaUV2 = v3.uv - v1.uv;
+			//Use inverse of the UV matrix to determine tangent.
+			float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+			glm::vec3 tangent = {
+				f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x),
+				f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
+				f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z)
+			};
+			//Average in the new tangent vector.
+			average_vectors(t_list[t_indices[i + 0]].tangent, tangent, counts[t_indices[i + 0]]++);
+			average_vectors(t_list[t_indices[i + 1]].tangent, tangent, counts[t_indices[i + 1]]++);
+			average_vectors(t_list[t_indices[i + 2]].tangent, tangent, counts[t_indices[i + 2]]++);
+		}
+	}
+
 	Mesh::Mesh(std::vector<Vertex> t_vertices, std::vector<unsigned int> t_indices,
 		std::vector<Texture> t_textures)
 		: vertices(t_vertices), indices(t_indices), textures(t_textures) {
@@ -76,6 +116,9 @@ namespace firesteel {
 		// UVs //
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+		// Tangets //
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
 		//Unbind vertex array.
 		glBindVertexArray(0);
 	}
@@ -93,32 +136,36 @@ namespace firesteel {
 			unsigned int emission_idx = 0;
 			for(unsigned int i = 0; i < textures.size(); i++) {
 				//Activate texture.
-				glActiveTexture(GL_TEXTURE0 + i);
+				textures[i].enable();
 				//Retrieve texture info.
 				std::string name;
-				switch (textures[i].type) {
+				switch(textures[i].type) {
 				case aiTextureType_DIFFUSE:
-					name = "diffuse" + std::to_string(diffuse_idx++);
+					name = "diffuse" + std::to_string(diffuse_idx);
+					diffuse_idx++;
 					break;
 				case aiTextureType_SPECULAR:
-					name = "specular" + std::to_string(specular_idx++);
+					name = "specular" + std::to_string(specular_idx);
+					specular_idx++;
 					break;
 				case aiTextureType_EMISSIVE:
-					name = "emission" + std::to_string(emission_idx++);
+					name = "emission" + std::to_string(emission_idx);
+					emission_idx++;
 					break;
 				}
-				//Set shader value and bind texture.
-				t_shader.set_int(name.c_str(), i);
-				textures[i].enable();
+				//Set shader value.
+				t_shader.set_int(name.c_str(), textures[i].get_id());
+				glActiveTexture(GL_TEXTURE0);
 			}
 		}
 		//Enable buffers.
 		glBindVertexArray(vao);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemap_id);
 		glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()), GL_UNSIGNED_INT, 0);
+		//Unbind active variables.
 		glBindVertexArray(0);
-		//Unbind active texture.
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	void Mesh::set_cubemap(unsigned int t_id) {
