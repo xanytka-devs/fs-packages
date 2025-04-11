@@ -1,0 +1,12 @@
+[submodule "openal/openal-soft"]
+	path = openal/openal-soft
+	url = https://github.com/kcat/openal-soft.git
+[submodule "fs.phys.2d/box2d"]
+	path = fs.phys.2d/box2d
+	url = https://github.com/erincatto/box2d.git
+[submodule "fs.phys.3d/bullet3"]
+	path = fs.phys.3d/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
+[submodule "fs.lua/LuaBridge"]
+	path = fs.lua/LuaBridge
+	url = https://github.com/vinniefalco/LuaBridge.git

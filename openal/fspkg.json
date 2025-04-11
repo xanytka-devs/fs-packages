@@ -1,10 +1,10 @@
 {
 	"engine_version": "0.2",
 	"package_info": {
-		"id": 3,
-		"name": "fs.lua",
+		"id": 1,
+		"name": "openal",
 		"version": "0.1",
-		"category": "language",
+		"category": "audio",
 		"language": "cpp"
 	}
 }

@@ -1,10 +1,10 @@
 {
 	"engine_version": "0.2",
 	"package_info": {
-		"id": 3,
-		"name": "fs.lua",
+		"id": 5,
+		"name": "fs.phys.3d",
 		"version": "0.1",
-		"category": "language",
+		"category": "physics",
 		"language": "cpp"
 	}
 }
