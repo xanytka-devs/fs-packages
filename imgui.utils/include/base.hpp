@@ -90,17 +90,17 @@ namespace FSImGui {
         }
         return b;
     }
-    static bool DragLFloat4(const char* tName, float& f1, float& f2, float& f3, float& f4, const float& tSpeed = 0.1f) {
-        vec4[0] = f1;
-        vec4[1] = f2;
-        vec4[2] = f3;
-        vec4[3] = f4;
+    static bool DragLFloat4(const char* tName, float& tF1, float& tF2, float& tF3, float& tF4, const float& tSpeed = 0.1f) {
+        vec4[0] = tF1;
+        vec4[1] = tF2;
+        vec4[2] = tF3;
+        vec4[3] = tF4;
         bool b = ImGui::DragFloat4(tName, vec4, tSpeed);
         if (b) {
-            f1 = vec4[0];
-            f2 = vec4[1];
-            f3 = vec4[2];
-            f4 = vec4[3];
+            tF1 = vec4[0];
+            tF2 = vec4[1];
+            tF3 = vec4[2];
+            tF4 = vec4[3];
         }
         return b;
     }
@@ -116,15 +116,15 @@ namespace FSImGui {
         }
         return b;
     }
-    static bool DragLFloat3(const char* tName, float& f1, float& f2, float& f3, const float& tSpeed = 0.1f) {
-        vec3[0] = f1;
-        vec3[1] = f2;
-        vec3[2] = f3;
+    static bool DragLFloat3(const char* tName, float& tF1, float& tF2, float& tF3, const float& tSpeed = 0.1f) {
+        vec3[0] = tF1;
+        vec3[1] = tF2;
+        vec3[2] = tF3;
         bool b = ImGui::DragFloat3(tName, vec3, tSpeed);
         if (b) {
-            f1 = vec3[0];
-            f2 = vec3[1];
-            f3 = vec3[2];
+            tF1 = vec3[0];
+            tF2 = vec3[1];
+            tF3 = vec3[2];
         }
         return b;
     }
@@ -138,13 +138,13 @@ namespace FSImGui {
         }
         return b;
     }
-    static bool DragLFloat2(const char* tName, float& f1, float& f2, const float& tSpeed = 0.1f) {
-        vec2[0] = f1;
-        vec2[1] = f2;
+    static bool DragLFloat2(const char* tName, float& tF1, float& tF2, const float& tSpeed = 0.1f) {
+        vec2[0] = tF1;
+        vec2[1] = tF2;
         bool b = ImGui::DragFloat2(tName, vec2, tSpeed);
         if (b) {
-            f1 = vec2[0];
-            f2 = vec2[1];
+            tF1 = vec2[0];
+            tF2 = vec2[1];
         }
         return b;
     }

@@ -1,14 +1,16 @@
-#ifndef FS_TEXT
-#define FS_TEXT
+#ifndef FS_UI_TEXT
+#define FS_UI_TEXT
 
-#include "../../../engine/include/common.hpp"
 #include <filesystem>
 #include <string>
 #include <map>
-#include "../../../engine/include/shader.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <../external/freetype/ft2build.h>
+#include FT_FREETYPE_H
 #include <../external/freetype/include/freetype.h>
+
+#include "../../../engine/include/common.hpp"
+#include "../../../engine/include/shader.hpp"
 
 FT_Library ft;
 bool initialized;
@@ -16,10 +18,11 @@ bool done;
 
 namespace Firesteel {
 	typedef struct {
-		unsigned int texture_id;	// Texture ID which is storing character.
 		glm::ivec2 size;			// Size of character.
 		glm::ivec2 bearing;			// Distance from origin to top left of character.
 		unsigned int advance;		// Distance from origin to next origin (1/64th pixels).
+		glm::vec2 topLeft;			// Location from top left. [0,0]
+		glm::vec2 bottomRight;		// Location from bottom right. [1,1]
 	} Character;
 
 	class TextRenderer {
@@ -31,72 +34,107 @@ namespace Firesteel {
 			}
 			initialized = true;
 		}
+		static bool isInitialized() {
+			return initialized;
+		}
 	};
 
 	class Text {
 	public:
-		bool loadFont(std::string path, int t_height) {
+		bool loadFont(std::string tTTFPath, int tHeight) {
 			if(!initialized) return false;
-			if(!std::filesystem::exists(path)) {
-				LOG_ERRR("Font file \"" + path + "\" doesn't exist.");
+			if(!std::filesystem::exists(tTTFPath)) {
+				LOG_ERRR("Font file \"" + tTTFPath + "\" doesn't exist.");
 				return false;
 			}
 			//Assign variables and load font.
-			m_height = t_height;
+			mChars.clear();
+			mHeight = tHeight;
 			FT_Face font;
-			if (FT_New_Face(ft, path.c_str(), 0, &font)) {
-				LOG_ERRR("Couldn't load font file \"" + path + "\".");
+			if (FT_New_Face(ft, tTTFPath.c_str(), 0, &font)) {
+				LOG_ERRR("Couldn't load font file \"" + tTTFPath + "\".");
 				return false;
 			}
 			//Set height and dynamic width.
-			FT_Set_Pixel_Sizes(font, 0, m_height);
+			FT_Set_Pixel_Sizes(font, 0, mHeight);
 			//Load texture.
 			//Disables the byte-alignment restriction so can use 1 byte for each pixel.
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			int atlasWidth = 0, atlasHeight = 0;
 			//Load first 128 characters of ASCII set.
-			for (unsigned char c = 1; c < 129; c++) {
+			for (unsigned char c = 0; c < 128; c++) {
 				//Load glyph.
-				if (FT_Load_Char(font, c-1, FT_LOAD_RENDER)) {
-					LOG_ERRR(std::string("Couldn't load glyph #") + (const char *)c + ".");
+				if (FT_Load_Char(font, c, FT_LOAD_RENDER)) {
+					LOG_ERRR(std::string("Couldn't load glyph #") + (const char *)(c+1) + ".");
 					continue;
 				}
-				//Generate texture.
-				unsigned int texture;
-				glGenTextures(1, &texture);
-				glBindTexture(GL_TEXTURE_2D, texture);
-				glTexImage2D(
-					GL_TEXTURE_2D,
+				//Update atlas variables.
+				atlasWidth += font->glyph->bitmap.width;
+				if(atlasHeight<static_cast<int>(font->glyph->bitmap.rows))
+					atlasHeight = static_cast<int>(font->glyph->bitmap.rows);
+			}
+			//Generate texture.
+			glGenTextures(1, &mTextureID);
+			glBindTexture(GL_TEXTURE_2D, mTextureID);
+			glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RED,
+				atlasWidth,
+				atlasHeight,
+				0,
+				GL_RED,
+				GL_UNSIGNED_BYTE,
+				nullptr
+			);
+			//Set texture parameters.
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			//Place glyphs into atlas.
+			int x = 0;
+			for (unsigned char c = 0; c < 128; c++) {
+				//Load glyph.
+				if(FT_Load_Char(font, static_cast<char>(c), FT_LOAD_RENDER)) {
+					std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+					continue;
+				}
+				//Add glyph to texture atlas.
+				glTextureSubImage2D(
+					mTextureID,
 					0,
-					GL_RED,
+					x,
+					0,
 					font->glyph->bitmap.width,
 					font->glyph->bitmap.rows,
-					0,
 					GL_RED,
 					GL_UNSIGNED_BYTE,
 					font->glyph->bitmap.buffer
 				);
-				//Set texture parameters.
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				//Store character texture for use.
-				Character character = {
-					texture,
-					glm::ivec2(font->glyph->bitmap.width, font->glyph->bitmap.rows),
+				//Store glyph information in character map.
+				glm::ivec2 Size = glm::ivec2(font->glyph->bitmap.width, font->glyph->bitmap.rows);
+				Character character{
+					Size,
 					glm::ivec2(font->glyph->bitmap_left, font->glyph->bitmap_top),
-					static_cast<unsigned int>(font->glyph->advance.x)
+					static_cast<unsigned int>(font->glyph->advance.x),
+
+					glm::vec2(static_cast<float>(x) / static_cast<float>(atlasWidth),0.0f),
+					glm::vec2(static_cast<float>(x + Size.x) / static_cast<float>(atlasWidth), static_cast<float>(Size.y) / static_cast<float>(atlasHeight))
 				};
-				m_chars.insert(std::pair<char, Character>(c-1, character));
+				mChars.insert(std::pair<char, Character>(c, character));
+
+				// update x position for next glyph
+				x += font->glyph->bitmap.width;
 			}
 			//Signal that font was loaded.
 			glBindTexture(GL_TEXTURE_2D, 0);
 			FT_Done_Face(font);
 			//Config VAO and VBO.
-			glGenVertexArrays(1, &m_text_vao);
-			glGenBuffers(1, &m_text_vbo);
-			glBindVertexArray(m_text_vao);
-			glBindBuffer(GL_ARRAY_BUFFER, m_text_vbo);
+			glGenVertexArrays(1, &mTextVAO);
+			glGenBuffers(1, &mTextVBO);
+			glBindVertexArray(mTextVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, mTextVBO);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
@@ -105,65 +143,73 @@ namespace Firesteel {
 			return true;
 		}
 
-		void draw(Shader* shader, std::string text, glm::vec2 t_proj_size, glm::vec2 t_pos, glm::vec2 scale, glm::vec3 color) {
+		void draw(Shader* tShader, std::string tText, glm::vec2 tProjectionSize, glm::vec2 tPosition, glm::vec2 tSize, glm::vec3 tColor) {
 			if (!initialized) return;
 			if (!done) {
 				FT_Done_FreeType(ft);
 				done = true;
 			}
-			shader->enable();
-			shader->setVec3("textColor", color);
-			shader->setMat4("projection", glm::ortho(0.0f, t_proj_size.x, 0.0f, t_proj_size.y));
+			//Setup shader.
+			tShader->enable();
+			tShader->setBool("sampleAlpha", true);
+			tShader->setBool("hasTexture", true);
+			tShader->setVec3("color", tColor);
+			tShader->setMat4("projection", glm::ortho(0.0f, tProjectionSize.x, 0.0f, tProjectionSize.y));
+			tShader->setMat4("model", glm::mat4(1));
+			//Setup render data.
 			glActiveTexture(GL_TEXTURE0);
-			glBindVertexArray(m_text_vao);
+			glBindVertexArray(mTextVAO);
+			glBindTexture(GL_TEXTURE_2D, mTextureID);
+			glBindBuffer(GL_ARRAY_BUFFER, mTextVBO);
+			//Setup advancable data.
+			Character c{};
+			float xpos, ypos; // characters might need to be shifted below baseline
+			float w = c.size.x * tSize.x, h = c.size.y * tSize.y;
 			//Go through all characters of string.
-			for (size_t i = 0, len = text.size(); i < len; i++) {
-				Character c = m_chars[text[i]];
-				float xpos = t_pos.x + c.bearing.x * scale.x;
-				float ypos = t_pos.y - (c.size.y - c.bearing.y) * scale.y; // characters might need to be shifted below baseline
-				float w = c.size.x * scale.x;
-				float h = c.size.y * scale.y;
+			for (size_t i = 0, len = tText.size(); i < len; i++) {
+				//Advance data.
+				c = mChars[tText[i]];
+				xpos = tPosition.x + c.bearing.x * tSize.x;
+				ypos = tPosition.y - (c.size.y - c.bearing.y) * tSize.y;
+				w = c.size.x * tSize.x, h = c.size.y * tSize.y;
 				//New VBO data.
+				glm::vec2 b = c.bottomRight, t = c.topLeft;
 				float vertices[6][4] = {
-					//			X		  Y			UV
-						{ xpos,     ypos + h,   0.0f, 0.0f },
-						{ xpos,     ypos,       0.0f, 1.0f },
-						{ xpos + w, ypos,       1.0f, 1.0f },
+					//		X		  Y				UV
+						{ xpos,     ypos + h,   t.x, t.y },
+						{ xpos,     ypos,       t.x, b.y },
+						{ xpos + w, ypos,       b.x, b.y },
 			
-						{ xpos,     ypos + h,   0.0f, 0.0f },
-						{ xpos + w, ypos,       1.0f, 1.0f },
-						{ xpos + w, ypos + h,   1.0f, 0.0f }
+						{ xpos,     ypos + h,   t.x, t.y },
+						{ xpos + w, ypos,       b.x, b.y },
+						{ xpos + w, ypos + h,   b.x, t.y }
 				};
-				//Setup texture.
-				glBindTexture(GL_TEXTURE_2D, c.texture_id);
-				//Update content of VBO memory.
-				glBindBuffer(GL_ARRAY_BUFFER, m_text_vbo);
-				glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				//Render quad.
+				glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 				//Advance cursor.
-				t_pos.x += (c.advance >> 6) * scale.x; // multiply by 64 
+				tPosition.x += (c.advance >> 6) * tSize.x; // multiply by 64 
 			}
 			//Clear bindings.
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
 		void remove() {
 			if(!initialized) return;
-			glDeleteVertexArrays(1, &m_text_vao);
-			glDeleteBuffers(1, &m_text_vbo);
-			m_chars.clear();
+			glDeleteVertexArrays(1, &mTextVAO);
+			glDeleteBuffers(1, &mTextVBO);
+			mChars.clear();
 		}
 
 		~Text() { remove(); }
 	private:
-		int m_height = 0;
-		std::map<char, Character> m_chars;
-		unsigned int m_text_vao = 0, m_text_vbo = 0;
+		int mHeight = 0;
+		std::map<char, Character> mChars;
+		unsigned int mTextVAO = 0, mTextVBO = 0, mTextureID = 0;
 	};
 
 }
 
-#endif // !FS_TEXT
+#endif // !FS_UI_TEXT

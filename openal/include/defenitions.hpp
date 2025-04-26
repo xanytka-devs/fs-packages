@@ -1,7 +1,7 @@
 #ifndef FS_OAL_DEF
 #define FS_OAL_DEF
 
-#include "../common.hpp"
+#include "../../../engine/include/common.hpp"
 #include <utility>
 #include <vector>
 #include <array>
@@ -13,7 +13,7 @@ namespace FSOAL {
 
     static ALCdevice* ALCDEVICE;
     static ALCcontext* ALCONTEXT;
-    static bool globalInitState;
+    static bool oalGlobalInitState;
 
 	static bool initialize() {
         char const* device_name = nullptr;
@@ -27,16 +27,16 @@ namespace FSOAL {
         ALCONTEXT = alcCreateContext(ALCDEVICE, (ALCint*)nullptr);
         ALCboolean contextMadeCurrent = false;
         alcMakeContextCurrent(ALCONTEXT);
-        globalInitState = true;
+        oalGlobalInitState = true;
         return true;
 	}
 
     void deinitialize() {
-        if(!globalInitState) return;
+        if(!oalGlobalInitState) return;
         alcMakeContextCurrent(ALCONTEXT);
         alcDestroyContext(ALCONTEXT);
         alcCloseDevice(ALCDEVICE);
-        globalInitState = false;
+        oalGlobalInitState = false;
     }
 
 }

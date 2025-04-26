@@ -21,11 +21,11 @@ namespace FSOAL {
 	struct Listener {
 	public:
 		static void setPosition(glm::vec3 tPos) {
-			if(!globalInitState) return;
+			if(!oalGlobalInitState) return;
 			alListener3f(AL_POSITION, tPos.x, tPos.y, tPos.z);
 		}
 		static void setRotation(glm::vec3 tForward, glm::vec3 tUp) {
-			if(!globalInitState) return;
+			if(!oalGlobalInitState) return;
 			float orientation[6]{
 				tForward.x, tForward.y, tForward.z,
 				tUp.x, tUp.y, tUp.z
@@ -34,7 +34,7 @@ namespace FSOAL {
 			alListenerfv(AL_ORIENTATION, orientation);
 		}
 		static void setDistanceModel(DistanceModel tMode) {
-			if(!globalInitState) return;
+			if(!oalGlobalInitState) return;
 			alDistanceModel(tMode);
 		}
 	};
