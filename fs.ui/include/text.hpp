@@ -143,7 +143,7 @@ namespace Firesteel {
 			return true;
 		}
 
-		void draw(Shader* tShader, std::string tText, glm::vec2 tProjectionSize, glm::vec2 tPosition, glm::vec2 tSize, glm::vec3 tColor) {
+		void draw(Shader* tShader, std::string tText, glm::vec2 tProjectionSize, glm::vec2 tPosition, glm::vec2 tSize, glm::vec4 tColor) {
 			if (!initialized) return;
 			if (!done) {
 				FT_Done_FreeType(ft);
@@ -151,9 +151,9 @@ namespace Firesteel {
 			}
 			//Setup shader.
 			tShader->enable();
-			tShader->setBool("sampleAlpha", true);
+			tShader->setBool("isFont", true);
 			tShader->setBool("hasTexture", true);
-			tShader->setVec3("color", tColor);
+			tShader->setVec4("color", tColor);
 			tShader->setMat4("projection", glm::ortho(0.0f, tProjectionSize.x, 0.0f, tProjectionSize.y));
 			tShader->setMat4("model", glm::mat4(1));
 			//Setup render data.

@@ -1,6 +1,8 @@
 #ifndef FS_UI_GENERIC
 #define FS_UI_GENERIC
 
+#include <glm/glm.hpp>
+
 #include "../../../engine/include/common.hpp"
 #include "../../../engine/include/shader.hpp"
 #include "../../../engine/include/texture.hpp"
@@ -45,7 +47,7 @@ namespace Firesteel {
 
 		void draw(const Shader* tShader,
 			glm::vec2 tProjectionSize=glm::vec2(0), glm::vec2 tPosition=glm::vec2(0), glm::vec2 tSize=glm::vec2(1), float tPitchRotation=0,
-			glm::vec3 tColor=glm::vec3(1)) {
+			glm::vec4 tColor=glm::vec4(1)) {
             // prepare transformations
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(tPosition.x, tProjectionSize.y-tPosition.y, 0.0f));
@@ -54,10 +56,10 @@ namespace Firesteel {
 
             tShader->enable();
             tShader->setBool("hasTexture", mHasTexture);
-            tShader->setBool("sampleAlpha", false);
+            tShader->setBool("isFont", false);
             tShader->setMat4("model", model);
             tShader->setMat4("projection", glm::ortho(0.f, tProjectionSize.x, tProjectionSize.y, 0.f));
-            tShader->setVec3("color", tColor);
+            tShader->setVec4("color", tColor);
 
             if(mHasTexture) mTexture.enable();
             glBindVertexArray(mVAO);
@@ -102,7 +104,7 @@ namespace Firesteel {
             } else mState=0;
         }
         void draw(const Shader* tShader, const glm::vec2 tProjectionSize) {
-            glm::vec3 color = background;
+            glm::vec4 color = background;
             switch (mState) {
             case 1:
                 color=hover;
@@ -112,6 +114,11 @@ namespace Firesteel {
                 break;
             }
             mSprite.draw(tShader, tProjectionSize, mPos, mSize, mPitch, color);
+        }
+        void draw(const Shader* tShader,
+            glm::vec2 tProjectionSize = glm::vec2(0), glm::vec2 tPosition = glm::vec2(0), glm::vec2 tSize = glm::vec2(1), float tPitch = 0,
+            glm::vec4 tColor = glm::vec4(1)) {
+            mSprite.draw(tShader, tProjectionSize, tPosition, tSize, tPitch, tColor);
         }
 
         void remove() {
@@ -126,7 +133,7 @@ namespace Firesteel {
         void setPitch(float tPitch) { mPitch = tPitch; }
         void setSize(glm::vec2 tSize) { mSize = tSize; }
 
-        glm::vec3 background{0.25f}, hover{0.3f}, clicked{0.1f};
+        glm::vec4 background{0.25f}, hover{0.3f}, clicked{0.1f};
     protected:
         glm::vec2 mPos{0}, mSize{1};
         float mPitch=0;
