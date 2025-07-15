@@ -13,14 +13,13 @@ namespace Firesteel {
 	class Sprite {
 	public:
 		void initialize(const std::string tSprite = "") {
-            // Load texture.
+            //Load given texture.
             if(tSprite != "" && std::filesystem::exists(tSprite)) {
                 mTexture.ID = TextureFromFile(tSprite, &mTexture.isMonochrome, true);
                 mTexture.path = tSprite.c_str();
                 mHasTexture = true;
             }
-
-            // Configure VAO and VBO.
+            //Configure VAO and VBO.
             float vertices[] = {
             //   X     Y            UV
                 0.0f, 1.0f,     0.0f, 1.0f,
@@ -31,13 +30,12 @@ namespace Firesteel {
                 1.0f, 1.0f,     1.0f, 1.0f,
                 1.0f, 0.0f,     1.0f, 0.0f
             };
-
+            //Generate buffers.
             glGenVertexArrays(1, &mVAO);
             glGenBuffers(1, &mVBO);
-
             glBindBuffer(GL_ARRAY_BUFFER, mVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+            //Put data in new buffers.
             glBindVertexArray(mVAO);
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -46,21 +44,25 @@ namespace Firesteel {
 		}
 
 		void draw(const Shader* tShader,
-			glm::vec2 tProjectionSize=glm::vec2(0), glm::vec2 tPosition=glm::vec2(0), glm::vec2 tSize=glm::vec2(1), float tPitchRotation=0,
+			glm::vec2 tProjectionSize=glm::vec2(0), glm::vec3 tPosition=glm::vec3(0), glm::vec2 tSize=glm::vec2(1), float tPitchRotation=0,
 			glm::vec4 tColor=glm::vec4(1)) {
-            // prepare transformations
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(tPosition.x, tProjectionSize.y-tPosition.y, 0.0f));
-            model = glm::rotate(model, glm::radians(tPitchRotation), glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::scale(model, glm::vec3(tSize, 1.0f));
-
+            //Prepare for a draw call.
+            tPosition.y=tProjectionSize.y-tPosition.y;
+            glm::mat4 model = glm::mat4(1.f);
+            model = glm::translate(model, tPosition);
+            model = glm::rotate(model, glm::radians(tPitchRotation), glm::vec3(0.f, 0.f, 1.f));
+            model = glm::scale(model, glm::vec3(tSize, 1.f));
+            //Update params.
             tShader->enable();
             tShader->setBool("hasTexture", mHasTexture);
             tShader->setBool("isFont", false);
             tShader->setMat4("model", model);
+            //TODO: Fix stupid matrix not working correctly.
+			//For some reason it doesn't let me change coordinates.
+			//If I change them it just refuses to draw.
             tShader->setMat4("projection", glm::ortho(0.f, tProjectionSize.x, tProjectionSize.y, 0.f));
             tShader->setVec4("color", tColor);
-
+            //Draw.
             if(mHasTexture) mTexture.enable();
             glBindVertexArray(mVAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -92,9 +94,22 @@ namespace Firesteel {
         }
 
         void update(const glm::vec2 tProjectionSize) {
-            glm::vec2 tCurPos = Mouse::getCursorPosition();
-            if(tCurPos.x>= mPos.x && tCurPos.y>=(tProjectionSize.y-mPos.y) &&
-                tCurPos.x <= mPos.x + mSize.x && tCurPos.y <= (tProjectionSize.y-mPos.y)+mSize.y) {
+            glm::vec2 curPos = Mouse::getCursorPosition();
+            if(mPitch!=0) {
+                float pitch=-glm::radians(mPitch);
+                glm::vec2 center = mPos+mSize/2.f;
+                glm::vec2 centeredCurPos = curPos-center;
+                //Rotate mouse coords to account for button rotation
+                glm::vec2 rotatedCurPos = {
+                    centeredCurPos.x*glm::cos(pitch)-centeredCurPos.y*glm::sin(pitch),
+                    centeredCurPos.x*glm::sin(pitch)+centeredCurPos.y*glm::cos(pitch)
+                };
+                //"Unrotate" mouse position
+                curPos=center+rotatedCurPos;
+            }
+            if(curPos.x>=mPos.x&&curPos.x<=mPos.x+mSize.x&&
+                curPos.y>=(tProjectionSize.y-mPos.y)&&
+                curPos.y<=(tProjectionSize.y-mPos.y)+mSize.y) {
                 mState=1;
                 onHover();
                 if(Mouse::buttonDown(0)) {
@@ -113,10 +128,10 @@ namespace Firesteel {
                 color=clicked;
                 break;
             }
-            mSprite.draw(tShader, tProjectionSize, mPos, mSize, mPitch, color);
+            mSprite.draw(tShader, tProjectionSize, glm::vec3(mPos,mZIndex), mSize, mPitch, color);
         }
         void draw(const Shader* tShader,
-            glm::vec2 tProjectionSize = glm::vec2(0), glm::vec2 tPosition = glm::vec2(0), glm::vec2 tSize = glm::vec2(1), float tPitch = 0,
+            glm::vec2 tProjectionSize, glm::vec3 tPosition, glm::vec2 tSize, float tPitch = 0,
             glm::vec4 tColor = glm::vec4(1)) {
             mSprite.draw(tShader, tProjectionSize, tPosition, tSize, tPitch, tColor);
         }
@@ -126,17 +141,21 @@ namespace Firesteel {
         }
 
         glm::vec2 getPosition() const { return mPos; }
+        glm::vec3 getPositionWZ() const { return glm::vec3(mPos, mZIndex); }
         float getPitch() const { return mPitch; }
         glm::vec2 getSize() const { return mSize; }
 
         void setPositon(glm::vec2 tPos) { mPos = tPos; }
+        void setPositon(glm::vec3 tPos) { mPos = glm::vec2(tPos.x, tPos.y); mZIndex=tPos.z; }
         void setPitch(float tPitch) { mPitch = tPitch; }
         void setSize(glm::vec2 tSize) { mSize = tSize; }
 
-        glm::vec4 background{0.25f}, hover{0.3f}, clicked{0.1f};
+        glm::vec4 background{glm::vec3(0.25f),1.f},
+            hover{glm::vec3(0.3f),1.f},
+            clicked{glm::vec3(0.1f),1.f};
     protected:
         glm::vec2 mPos{0}, mSize{1};
-        float mPitch=0;
+        float mPitch=0, mZIndex = 0;
         short mState=0;
 
         Sprite mSprite;

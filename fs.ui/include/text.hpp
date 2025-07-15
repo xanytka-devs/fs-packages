@@ -12,9 +12,9 @@
 #include "../../../engine/include/common.hpp"
 #include "../../../engine/include/shader.hpp"
 
-FT_Library ft;
-bool initialized;
-bool done;
+FT_Library gFreeType;
+bool gInit;
+bool gDone;
 
 namespace Firesteel {
 	typedef struct {
@@ -28,21 +28,29 @@ namespace Firesteel {
 	class TextRenderer {
 	public:
 		static void initialize() {
-			if (FT_Init_FreeType(&ft)) {
+			if(FT_Init_FreeType(&gFreeType)) {
 				LOG_ERRR("Couldn't load FreeType library.");
 				return;
 			}
-			initialized = true;
+			gInit = true;
 		}
 		static bool isInitialized() {
-			return initialized;
+			return gInit;
 		}
+	};
+
+	// [!WARNING]
+	// This enum provides basic glyph ranges (mostly latin+cyrillic).
+	enum TextGlyphRange {
+		TGR_ASCII=128,
+		TGR_KOI8_R=256,
+		TGR_ISO8859_5=242
 	};
 
 	class Text {
 	public:
-		bool loadFont(std::string tTTFPath, int tHeight) {
-			if(!initialized) return false;
+		bool loadFont(const std::string tTTFPath, const int tHeight, const TextGlyphRange tLastCharId=TGR_ASCII) {
+			if(!TextRenderer::isInitialized()) return false;
 			if(!std::filesystem::exists(tTTFPath)) {
 				LOG_ERRR("Font file \"" + tTTFPath + "\" doesn't exist.");
 				return false;
@@ -51,7 +59,7 @@ namespace Firesteel {
 			mChars.clear();
 			mHeight = tHeight;
 			FT_Face font;
-			if (FT_New_Face(ft, tTTFPath.c_str(), 0, &font)) {
+			if (FT_New_Face(gFreeType, tTTFPath.c_str(), 0, &font)) {
 				LOG_ERRR("Couldn't load font file \"" + tTTFPath + "\".");
 				return false;
 			}
@@ -61,8 +69,8 @@ namespace Firesteel {
 			//Disables the byte-alignment restriction so can use 1 byte for each pixel.
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			int atlasWidth = 0, atlasHeight = 0;
-			//Load first 128 characters of ASCII set.
-			for (unsigned char c = 0; c < 128; c++) {
+			//Load characters of given glyph array.
+			for (unsigned char c = 0; c < tLastCharId; c++) {
 				//Load glyph.
 				if (FT_Load_Char(font, c, FT_LOAD_RENDER)) {
 					LOG_ERRR(std::string("Couldn't load glyph #") + (const char *)(c+1) + ".");
@@ -94,7 +102,7 @@ namespace Firesteel {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			//Place glyphs into atlas.
 			int x = 0;
-			for (unsigned char c = 0; c < 128; c++) {
+			for (unsigned char c = 0; c < tLastCharId; c++) {
 				//Load glyph.
 				if(FT_Load_Char(font, static_cast<char>(c), FT_LOAD_RENDER)) {
 					std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
@@ -144,17 +152,21 @@ namespace Firesteel {
 		}
 
 		void draw(Shader* tShader, std::string tText, glm::vec2 tProjectionSize, glm::vec2 tPosition, glm::vec2 tSize, glm::vec4 tColor) {
-			if (!initialized) return;
-			if (!done) {
-				FT_Done_FreeType(ft);
-				done = true;
+			draw(tShader,tText,tProjectionSize,glm::vec3(tPosition,0),tSize,tColor);
+		}
+
+		void draw(Shader* tShader, std::string tText, glm::vec2 tProjectionSize, glm::vec3 tPosition, glm::vec2 tSize, glm::vec4 tColor) {
+			if (!TextRenderer::isInitialized()) return;
+			if (!gDone) {
+				FT_Done_FreeType(gFreeType);
+				gDone = true;
 			}
 			//Setup shader.
 			tShader->enable();
 			tShader->setBool("isFont", true);
 			tShader->setBool("hasTexture", true);
 			tShader->setVec4("color", tColor);
-			tShader->setMat4("projection", glm::ortho(0.0f, tProjectionSize.x, 0.0f, tProjectionSize.y));
+			tShader->setMat4("projection", glm::ortho(0.f, tProjectionSize.x, 0.f, tProjectionSize.y));
 			tShader->setMat4("model", glm::mat4(1));
 			//Setup render data.
 			glActiveTexture(GL_TEXTURE0);
@@ -197,7 +209,7 @@ namespace Firesteel {
 		}
 
 		void remove() {
-			if(!initialized) return;
+			if(!TextRenderer::isInitialized()) return;
 			glDeleteVertexArrays(1, &mTextVAO);
 			glDeleteBuffers(1, &mTextVBO);
 			mChars.clear();
