@@ -167,7 +167,7 @@ namespace Firesteel {
 			tShader->setBool("hasTexture", true);
 			tShader->setVec4("color", tColor);
 			tShader->setMat4("projection", glm::ortho(0.f, tProjectionSize.x, 0.f, tProjectionSize.y));
-			tShader->setMat4("model", glm::mat4(1));
+			tShader->setMat4("model", glm::translate(glm::mat4(1), glm::vec3(0,0,tPosition.z)));
 			//Setup render data.
 			glActiveTexture(GL_TEXTURE0);
 			glBindVertexArray(mTextVAO);
