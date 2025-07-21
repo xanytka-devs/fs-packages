@@ -1,8 +1,10 @@
 #ifndef FS_IMGUI_FA_H
 #define FS_IMGUI_FA_H
 
-#include "base.hpp"
-#include <../external/IconsFontAwesome6.h>
+#include <string>
+#include <imgui.h>
+
+#include "IconsFontAwesome6.h"
 
 namespace FSImGui {
 

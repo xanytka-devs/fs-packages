@@ -3,7 +3,7 @@
 	"package_info": {
 		"id": 1,
 		"name": "openal",
-		"version": 1,
+		"version": 2,
 		"category": "audio",
 		"language": "cpp"
 	}

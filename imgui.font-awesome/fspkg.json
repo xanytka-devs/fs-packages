@@ -1,10 +1,10 @@
 {
 	"engine_version": "0.2",
 	"package_info": {
-		"id": 3,
-		"name": "fs.lua",
+		"id": 8,
+		"name": "imgui.font-awesome",
 		"version": 2,
-		"category": "language",
+		"category": "ui",
 		"language": "cpp"
 	}
 }

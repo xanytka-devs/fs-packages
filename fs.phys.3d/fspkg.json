@@ -3,7 +3,7 @@
 	"package_info": {
 		"id": 5,
 		"name": "fs.phys.3d",
-		"version": 1,
+		"version": 2,
 		"category": "physics",
 		"language": "cpp"
 	}

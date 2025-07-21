@@ -1,9 +1,9 @@
 {
 	"engine_version": "0.2",
 	"package_info": {
-		"id": 0,
+		"id": 6,
 		"name": "imgui.utils",
-		"version": 1,
+		"version": 2,
 		"category": "ui",
 		"language": "cpp"
 	}

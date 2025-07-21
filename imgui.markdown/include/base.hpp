@@ -1,8 +1,11 @@
 #ifndef FS_IMGUI_MARKDOWN_H
 #define FS_IMGUI_MARKDOWN_H
 
-#include "base.hpp"
-#include <../external/imgui_markdown.h>
+#include <string>
+#include <imgui.h>
+
+#include "../engine/include/utils/utils.hpp"
+#include "imgui_markdown.h"
 
 namespace FSImGui {
     class MD {
